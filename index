@@ -1,0 +1,52 @@
+const express = require('express');
+const cors = require('cors')
+const webpush = require('web-push');
+const bodyParser = require('body-parser');
+
+const publicVapidKey = '*******';
+const privateVapidKey = '******';
+
+webpush.setVapidDetails('mailto:name@example.com', publicVapidKey, privateVapidKey);
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(cors())
+
+
+// app.get('/push', (req, res) => {
+	// let payload = {
+		// title: req.query.msg,
+		// body: 'Hello, World!',
+		// icon: 'http://mongoosejs.com/docs/images/mongoose5_62x30_transparent.png',	
+	// }
+	// pushCall(subscription2,JSON.stringify(payload));
+	// res.send('Hello World!');
+// })
+
+app.post('/notification/push', (req, res) => {
+	res.status(201).json({});
+	const body = req.body;
+	const payload = JSON.stringify(body.msg);
+	let subscriptions = body.subscriptions
+	pushCall(subscriptions,payload);
+});
+
+// app.post('/subscribe', (req, res) => {
+  // const subscription = req.body;
+  // res.status(201).json({});
+  // const payload = JSON.stringify({ title: 'test' });
+  // pushCall(subscription,payload);
+// });
+
+
+function pushCall(subscriptions, payload){
+	//console.log('send subscription',JSON.stringify(subscriptions));	
+	for (var i = 0; i < subscriptions.length; i++) {
+	  webpush.sendNotification(subscriptions[i], payload).catch(error => {console.error(error.stack);});
+	}	
+}
+
+app.use(require('express-static')('./'));
+
+app.listen(8096, () => console.log(`Example app listening on port 8096!`));
